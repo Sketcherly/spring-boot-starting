@@ -1,6 +1,5 @@
 package com.xiaozu.server.configuration;
 
-import com.xiaozu.server.configuration.jwt.JwtAuthenticationException;
 import com.xiaozu.server.domain.vo.BasicResponseObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +7,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -27,7 +25,7 @@ public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public BasicResponseObject<?> handleBusinessException(AuthenticationException e) {
-        return JwtAuthenticationException.NON_AUTH_RESPONSE;
+        return BasicResponseObject.fail(203, "鉴权失败");
     }
 
     @ExceptionHandler(Throwable.class)

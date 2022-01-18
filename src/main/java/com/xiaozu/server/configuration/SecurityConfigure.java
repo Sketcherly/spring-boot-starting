@@ -1,6 +1,5 @@
 package com.xiaozu.server.configuration;
 
-import com.xiaozu.server.configuration.jwt.JwtAuthenticationEntryPoint;
 import com.xiaozu.server.configuration.jwt.JwtAuthenticationRequestFilter;
 import com.xiaozu.server.constant.Constant;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import javax.annotation.Resource;
 
@@ -25,8 +23,6 @@ import javax.annotation.Resource;
 @Configuration
 public class SecurityConfigure extends WebSecurityConfigurerAdapter {
 
-    @Resource
-    private JwtAuthenticationEntryPoint authenticationEntryPoint;
     @Resource
     private UserDetailsService userDetailsService;
 
@@ -50,7 +46,6 @@ public class SecurityConfigure extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 // admin下的所有请求全部需要鉴权认证
                 .anyRequest().authenticated()
-                .and().exceptionHandling().authenticationEntryPoint(new JwtAuthenticationEntryPoint())
                 .and().addFilterBefore(new JwtAuthenticationRequestFilter(), UsernamePasswordAuthenticationFilter.class)
                 ;
 
