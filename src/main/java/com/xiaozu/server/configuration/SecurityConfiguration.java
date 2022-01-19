@@ -21,7 +21,7 @@ import javax.annotation.Resource;
  * Spring Security 配置
  */
 @Configuration
-public class SecurityConfigure extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Resource
     private UserDetailsService userDetailsService;
