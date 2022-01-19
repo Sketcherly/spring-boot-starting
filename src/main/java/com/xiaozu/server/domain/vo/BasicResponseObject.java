@@ -1,6 +1,6 @@
 package com.xiaozu.server.domain.vo;
 
-import javax.servlet.http.HttpServletResponse;
+import com.xiaozu.server.exception.BasicResponseStatus;
 
 /**
  * @author dongpo.li
@@ -12,22 +12,35 @@ public class BasicResponseObject<T> {
     private String message;
     private T data;
 
+    // 不推荐,业务中推荐直接抛出异常的形式,参见BusinessException
     public BasicResponseObject() {
     }
 
+    // 不推荐,业务中推荐直接抛出异常的形式,参见BusinessException
     public static <T> BasicResponseObject<T> ok(T data) {
         BasicResponseObject<T> obj = new BasicResponseObject<>();
-        obj.setCode(HttpServletResponse.SC_OK);
-        obj.setMessage("ok");
+        obj.setCode(BasicResponseStatus.OK.getCode());
+        obj.setMessage(BasicResponseStatus.OK.getMessage());
         obj.setData(data);
 
         return obj;
     }
 
+    // 不推荐,业务中推荐直接抛出异常的形式,参见BusinessException
     public static <T> BasicResponseObject<T> fail(int code, String message) {
         BasicResponseObject<T> obj = new BasicResponseObject<>();
         obj.setCode(code);
         obj.setMessage(message);
+        obj.setData(null);
+
+        return obj;
+    }
+
+    // 不推荐,业务中推荐直接抛出异常的形式,参见BusinessException
+    public static <T> BasicResponseObject<T> fail(BasicResponseStatus status) {
+        BasicResponseObject<T> obj = new BasicResponseObject<>();
+        obj.setCode(status.getCode());
+        obj.setMessage(status.getMessage());
         obj.setData(null);
 
         return obj;

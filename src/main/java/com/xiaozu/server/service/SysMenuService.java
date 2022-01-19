@@ -50,11 +50,16 @@ public class SysMenuService {
         return USER_AUTHORITY_CACHE.get(user.getId(), id -> buildUserAuthorityList(user));
     }
 
-    private List<String> buildUserAuthorityList(SysUser user) {
+    /**
+     * 查询用户账号对应的所有菜单的id并去重
+     *
+     * @return
+     */
+    private Set<Long> selectUserMenuIds(SysUser user) {
         // 1. 查询用户角色
         List<SysRole> sysRoleList = sysRoleService.selectUserRole(user);
         if (CollectionUtils.isEmpty(sysRoleList)) {
-            return List.of();
+            return Set.of();
         }
 
         Set<Long> menuIdList = new HashSet<>(); // 去重用
@@ -70,6 +75,16 @@ public class SysMenuService {
 
         }
 
+        return menuIdList;
+    }
+
+    private List<String> buildUserAuthorityList(SysUser user) {
+        Set<Long> menuIdList = selectUserMenuIds(user);
+
+        if (CollectionUtils.isEmpty(menuIdList)) {
+            return List.of();
+        }
+
         List<String> grantedAuthorityPath = new ArrayList<>();
         List<SysMenu> sysMenuList = sysMenuRepository.selectByIds(new ArrayList<>(menuIdList));
         for (SysMenu menu : sysMenuList) {
@@ -79,7 +94,21 @@ public class SysMenuService {
             }
         }
 
+        // 所有用户都应该具有的权限
+        grantedAuthorityPath.add(Constant.SERVER_ADMIN_NAMESPACE + "/sys/menu/tree");
+
         return grantedAuthorityPath;
+    }
+
+    public List<SysMenuNode> selectUserMenuTree(SysUser user) {
+        Set<Long> menuIdList = selectUserMenuIds(user);
+
+        if (CollectionUtils.isEmpty(menuIdList)) {
+            return List.of();
+        }
+
+        List<SysMenu> sysMenuList = sysMenuRepository.selectByIds(new ArrayList<>(menuIdList));
+        return buildMenuTree(sysMenuList);
     }
 
     private List<SysMenuNode> buildMenuTree(List<SysMenu> sysMenuList) {

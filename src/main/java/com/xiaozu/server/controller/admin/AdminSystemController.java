@@ -1,4 +1,4 @@
-package com.xiaozu.server.controller;
+package com.xiaozu.server.controller.admin;
 
 import com.xiaozu.server.configuration.jwt.JwtTokenManager;
 import com.xiaozu.server.constant.Constant;
@@ -10,7 +10,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

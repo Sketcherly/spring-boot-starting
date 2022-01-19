@@ -1,6 +1,7 @@
 package com.xiaozu.server.configuration.jwt;
 
 import com.xiaozu.server.domain.SysUser;
+import com.xiaozu.server.exception.AuthenticationAccessDeniedException;
 import com.xiaozu.server.service.SysMenuService;
 import com.xiaozu.server.service.SysUserService;
 import com.xiaozu.server.utils.SpringContextUtil;
@@ -110,7 +111,7 @@ public class JwtAuthenticationRequestFilter extends OncePerRequestFilter {
             return;
         }
 
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, List.of());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, user, List.of());
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 

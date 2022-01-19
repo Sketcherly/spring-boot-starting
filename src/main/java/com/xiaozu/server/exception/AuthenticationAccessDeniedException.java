@@ -1,4 +1,4 @@
-package com.xiaozu.server.configuration.jwt;
+package com.xiaozu.server.exception;
 
 import org.springframework.security.core.AuthenticationException;
 

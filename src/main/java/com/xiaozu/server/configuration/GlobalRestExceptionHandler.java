@@ -1,7 +1,9 @@
 package com.xiaozu.server.configuration;
 
-import com.xiaozu.server.configuration.jwt.AuthenticationAccessDeniedException;
+import com.xiaozu.server.exception.AuthenticationAccessDeniedException;
 import com.xiaozu.server.domain.vo.BasicResponseObject;
+import com.xiaozu.server.exception.BasicResponseStatus;
+import com.xiaozu.server.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author dongpo.li
@@ -25,36 +26,47 @@ public class GlobalRestExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalRestExceptionHandler.class);
 
     @ExceptionHandler(AuthenticationException.class)
-    public BasicResponseObject<?> handleBusinessException(AuthenticationException e) {
+    public BasicResponseObject<?> handleAuthenticationException(AuthenticationException e) {
         if (e instanceof AuthenticationAccessDeniedException) {
-            return BasicResponseObject.fail(403, "Forbidden");
+            return BasicResponseObject.fail(BasicResponseStatus.HTTP_FORBIDDEN);
         }
 
-        return BasicResponseObject.fail(401, "Unauthorized");
+        return BasicResponseObject.fail(BasicResponseStatus.HTTP_UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public BasicResponseObject<?> handleBusinessException(BusinessException e) {
+        if (BasicResponseStatus.HTTP_INTERNAL_SERVER_ERROR.equals(e.getStatus())) {
+            logger.error(e.getMessage(), e);
+        } else {
+            // 其他异常不打异常栈,属于可预知错误,以前端处理为主
+            logger.error(e.getMessage());
+        }
+        return BasicResponseObject.fail(BasicResponseStatus.HTTP_INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Throwable.class)
     public BasicResponseObject<?> handleException(Throwable e) {
         logger.error("服务未知异常", e);
-        return BasicResponseObject.fail(500, "Internal Server Error");
+        return BasicResponseObject.fail(BasicResponseStatus.HTTP_INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(ServletException.class)
     public BasicResponseObject<?> handleNoHandlerFoundException(ServletException e) {
 
         if (e instanceof NoHandlerFoundException) {
-            return BasicResponseObject.fail(404, "404 Not Found");
+            return BasicResponseObject.fail(BasicResponseStatus.HTTP_NOT_FOUND);
         }
         if (e instanceof HttpRequestMethodNotSupportedException) {
             // 不支持的请求方式,请检查GET/POST
-            return BasicResponseObject.fail(405, "Method Not Allowed");
+            return BasicResponseObject.fail(BasicResponseStatus.HTTP_METHOD_NOT_ALLOWED);
         }
         if (e instanceof HttpMediaTypeNotSupportedException) {
             // 不支持的参数提交方式,请检查Json/FormEncode
-            return BasicResponseObject.fail(415, "Unsupported Media Type");
+            return BasicResponseObject.fail(BasicResponseStatus.HTTP_UNSUPPORTED_MEDIA_TYPE);
         }
 
-        return BasicResponseObject.fail(500, "Internal Server Error");
+        return BasicResponseObject.fail(BasicResponseStatus.HTTP_INTERNAL_SERVER_ERROR);
     }
 
 }
