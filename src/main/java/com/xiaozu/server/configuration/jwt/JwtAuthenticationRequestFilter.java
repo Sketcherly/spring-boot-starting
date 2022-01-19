@@ -1,5 +1,8 @@
 package com.xiaozu.server.configuration.jwt;
 
+import com.xiaozu.server.domain.SysUser;
+import com.xiaozu.server.service.SysMenuService;
+import com.xiaozu.server.service.SysUserService;
 import com.xiaozu.server.utils.SpringContextUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
@@ -29,6 +33,8 @@ import java.util.List;
 //@Component // 这个不能用直接的方式所以这个舒适不能打开
 public class JwtAuthenticationRequestFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationRequestFilter.class);
+
+    private static final AntPathMatcher ANT_PATH_MATCHER = new AntPathMatcher();
 
     private static final String AUTHORIZATION_TOKEN_PREFIX = "Bearer ";
 
@@ -77,6 +83,33 @@ public class JwtAuthenticationRequestFilter extends OncePerRequestFilter {
             handlerExceptionResolver.resolveException(request, response, null, exception);
             return;
         }
+
+        // 获取当前用户
+        SysUserService sysUserService = SpringContextUtil.getApplicationContext().getBean(SysUserService.class);
+        SysUser sysUserQuery = new SysUser();
+        sysUserQuery.setUsername(username);
+        SysUser user = sysUserService.selectByUsername(sysUserQuery);
+
+        // 根据用户获取所有权限路径
+        SysMenuService sysMenuService = SpringContextUtil.getApplicationContext().getBean(SysMenuService.class);
+        List<String> authorityList = sysMenuService.selectUserAuthorityList(user);
+
+        // 判断权限
+        String uri = request.getRequestURI();
+        boolean access = false;
+        for (String pattern : authorityList) {
+            if (ANT_PATH_MATCHER.match(pattern, uri)) {
+                access = true;
+            }
+        }
+
+        if (!access) {
+            logger.error("access denied, userId={}, uri={}", user.getId(), uri);
+            AuthenticationException exception = new AuthenticationAccessDeniedException("access denied");
+            handlerExceptionResolver.resolveException(request, response, null, exception);
+            return;
+        }
+
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, List.of());
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);

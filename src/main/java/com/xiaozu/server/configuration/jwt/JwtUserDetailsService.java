@@ -1,11 +1,14 @@
 package com.xiaozu.server.configuration.jwt;
 
+import com.xiaozu.server.domain.SysUser;
+import com.xiaozu.server.service.SysUserService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -15,13 +18,20 @@ import java.util.List;
 @Component
 public class JwtUserDetailsService implements UserDetailsService {
 
+    @Resource
+    private SysUserService sysUserService;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if ("user".equals(username)) {
-            return new User("user", "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6", List.of());
-        } else {
+        SysUser sysUserQuery = new SysUser();
+        sysUserQuery.setUsername(username);
+
+        SysUser sysUser = sysUserService.selectByUsername(sysUserQuery);
+        if (sysUser == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
+
+        return new User(sysUser.getUsername(), sysUser.getPassword(), List.of());
     }
 
 }

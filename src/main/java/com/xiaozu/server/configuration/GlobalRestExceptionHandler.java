@@ -1,5 +1,6 @@
 package com.xiaozu.server.configuration;
 
+import com.xiaozu.server.configuration.jwt.AuthenticationAccessDeniedException;
 import com.xiaozu.server.domain.vo.BasicResponseObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,31 +26,35 @@ public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public BasicResponseObject<?> handleBusinessException(AuthenticationException e) {
-        return BasicResponseObject.fail(203, "鉴权失败");
+        if (e instanceof AuthenticationAccessDeniedException) {
+            return BasicResponseObject.fail(403, "Forbidden");
+        }
+
+        return BasicResponseObject.fail(401, "Unauthorized");
     }
 
     @ExceptionHandler(Throwable.class)
     public BasicResponseObject<?> handleException(Throwable e) {
         logger.error("服务未知异常", e);
-        return BasicResponseObject.fail(10000, "服务未知异常");
+        return BasicResponseObject.fail(500, "Internal Server Error");
     }
 
     @ExceptionHandler(ServletException.class)
     public BasicResponseObject<?> handleNoHandlerFoundException(ServletException e) {
 
         if (e instanceof NoHandlerFoundException) {
-            return BasicResponseObject.fail(HttpServletResponse.SC_NOT_FOUND, "404 not found");
+            return BasicResponseObject.fail(404, "404 Not Found");
         }
         if (e instanceof HttpRequestMethodNotSupportedException) {
-            String message = "不支持的请求方式,请检查GET/POST";
-            return BasicResponseObject.fail(HttpServletResponse.SC_METHOD_NOT_ALLOWED, message);
+            // 不支持的请求方式,请检查GET/POST
+            return BasicResponseObject.fail(405, "Method Not Allowed");
         }
         if (e instanceof HttpMediaTypeNotSupportedException) {
-            String message = "不支持的参数提交方式,请检查Json/FormEncode";
-            return BasicResponseObject.fail(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, message);
+            // 不支持的参数提交方式,请检查Json/FormEncode
+            return BasicResponseObject.fail(415, "Unsupported Media Type");
         }
 
-        return BasicResponseObject.fail(10000, "服务未知异常");
+        return BasicResponseObject.fail(500, "Internal Server Error");
     }
 
 }
