@@ -16,7 +16,11 @@ public enum BasicResponseStatus {
     HTTP_INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
 
     // 自定义的异常code请从10000开始,10000以前的数字保留备用
-    BASIC_SERVER_EXCEPTION(10000, "{0}"), // 大多数异常请直接使用这个错误码,前端直接toast,其他错误码由前端自行处理
+
+    // 大多数异常可以直接使用这个错误码,前端直接toast,其他错误码由前端自行处理
+    // 10000和500的区别是10000不会在日志里打印异常栈,500会打印异常栈
+    // 10000说明是正常的业务失败,500说明业务出现了不可预知的异常
+    BASIC_SERVER_EXCEPTION(10000, "{0}"),
     ;
 
     private final int code;
@@ -35,7 +39,7 @@ public enum BasicResponseStatus {
         return message;
     }
 
-    public BusinessException newInstance(Object... args) {
+    public BusinessException createException(Object... args) {
         if (args.length == 0) {
             return new BusinessException(this);
         }
