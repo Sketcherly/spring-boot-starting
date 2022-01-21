@@ -6,6 +6,7 @@ import com.xiaozu.server.service.SysMenuService;
 import com.xiaozu.server.service.SysUserService;
 import com.xiaozu.server.utils.SpringContextUtil;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,11 @@ public class JwtAuthenticationRequestFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException e) {
             logger.error("JWT Token has expired", e);
             AuthenticationException exception = new CredentialsExpiredException("JWT Token has expired");
+            handlerExceptionResolver.resolveException(request, response, null, exception);
+            return;
+        } catch (JwtException e) {
+            logger.error(e.getMessage(), e);
+            AuthenticationException exception = new AuthenticationServiceException(e.getMessage());
             handlerExceptionResolver.resolveException(request, response, null, exception);
             return;
         } catch (Exception e) {
